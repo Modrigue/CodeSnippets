@@ -4,22 +4,20 @@ namespace CodeSamples.CSharp
 {
     public static class UnixTime
     {
-        private static readonly DateTime Jan1st1970 = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-
         /// <summary>
-		/// Get extra long current timestamp
-		/// </summary>
+        /// Current Unix timestamp in milliseconds.
+        /// </summary>
         public static long Milliseconds
         {
-            get { return (long)((DateTime.UtcNow - Jan1st1970).TotalMilliseconds); }
+            get { return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(); }
         }
 
         /// <summary>
-		/// Get current date from timestamp
-		/// </summary>
+        /// Converts a Unix timestamp (seconds since 1970-01-01 UTC) to a UTC <see cref="DateTime"/>.
+        /// </summary>
         public static DateTime CurrentTimeFromSeconds(long seconds)
         {
-            return Jan1st1970.AddSeconds(seconds);
+            return DateTimeOffset.FromUnixTimeSeconds(seconds).UtcDateTime;
         }
     }
 }

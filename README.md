@@ -8,7 +8,7 @@ The repository is organized by language. Each top-level folder contains either s
 
 ### [CSharp/](CSharp/)
 
-Single-file C# utility classes covering common needs:
+Single-file .NET Framework C# utility classes covering common needs:
 
 - [Base64Tools.cs](CSharp/Base64Tools.cs) — Base64 encoding/decoding helpers.
 - [ByteTools.cs](CSharp/ByteTools.cs) — byte-array manipulation utilities.

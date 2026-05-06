@@ -44,7 +44,40 @@ namespace CodeSamples.CSharp
                 target.Refresh();
             }
         }
-		
+
+        /// <summary>
+        /// Suspends drawing on the control and returns a token that resumes drawing when disposed.
+        /// Intended for use with <c>using</c>: <c>using (control.BeginUpdate()) { ... }</c>.
+        /// </summary>
+        /// <param name="target">The control for which to suspend drawing.</param>
+        /// <param name="redraw">True to refresh the control when drawing is resumed.</param>
+        public static IDisposable BeginUpdate(this Control target, bool redraw = true)
+        {
+            target.SuspendDrawing();
+            return new DrawingScope(target, redraw);
+        }
+
+        private sealed class DrawingScope : IDisposable
+        {
+            private Control target_;
+            private readonly bool redraw_;
+
+            public DrawingScope(Control target, bool redraw)
+            {
+                target_ = target;
+                redraw_ = redraw;
+            }
+
+            public void Dispose()
+            {
+                if (target_ == null)
+                    return;
+
+                target_.ResumeDrawing(redraw_);
+                target_ = null;
+            }
+        }
+
         #endregion
     }
 }

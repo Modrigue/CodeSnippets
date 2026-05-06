@@ -36,44 +36,39 @@ namespace CodeSamples.CSharp
         /// <returns>The response from the server as a string.</returns>
         public static string PostMultipart(string url, string operation, string method, string token, Dictionary<string, object> parameters = null)
         {
-            ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+            ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
             ServicePointManager.Expect100Continue = false;
 
             // build URI with parameters if existing
-            string uri = url + "/" + operation;
+            var uriBuilder = new StringBuilder(url + "/" + operation);
             bool hasForm = false;
             if (parameters != null && parameters.Count > 0)
             {
                 bool hasFirstParamProcessed = false;
                 foreach (KeyValuePair<string, object> keyValue in parameters)
                 {
-                    string param = keyValue.Key;
-                    string value = keyValue.Value.ToString();
-
                     if (keyValue.Value is FormFile)
                     {
                         hasForm = true;
                         continue;
                     }
 
-                    // handle booleans
-                    //if (keyValue.Value is Boolean)
-                    //    value = (Convert.ToUInt32(keyValue.Value)).ToString();
+                    if (keyValue.Value == null)
+                        continue;
 
+                    string value = keyValue.Value.ToString();
                     if (String.IsNullOrEmpty(value))
                         continue;
 
-                    if (!hasFirstParamProcessed)
-                    {
-                        uri += "?";
-                        hasFirstParamProcessed = true;
-                    }
-                    else
-                        uri += "&";
+                    uriBuilder.Append(hasFirstParamProcessed ? "&" : "?");
+                    hasFirstParamProcessed = true;
 
-                    uri += param + "=" + value;
+                    uriBuilder.Append(Uri.EscapeDataString(keyValue.Key));
+                    uriBuilder.Append("=");
+                    uriBuilder.Append(Uri.EscapeDataString(value));
                 }
             }
+            string uri = uriBuilder.ToString();
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
             request.Method = method;
@@ -165,11 +160,7 @@ namespace CodeSamples.CSharp
         /// <returns>A byte array containing the image data.</returns>
         public static byte[] ImageFileToByteArray(string imagePath)
         {
-            FileStream fs = File.OpenRead(imagePath);
-            byte[] bytes = new byte[fs.Length];
-            fs.Read(bytes, 0, Convert.ToInt32(fs.Length));
-            fs.Close();
-            return bytes;
+            return File.ReadAllBytes(imagePath);
         }
     }
 	

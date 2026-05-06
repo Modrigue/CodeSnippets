@@ -8,7 +8,7 @@ namespace CodeSamples.CSharp
     /// <summary>
     /// Provides utility methods for encoding and decoding data using Base64 and handling byte conversions.
     /// </summary>
-    public class ByteTools
+    public class Base64Tools
     {
         /// <summary>
         /// Encodes a string to its Base64 string representation using UTF-8 encoding.
@@ -44,18 +44,11 @@ namespace CodeSamples.CSharp
         /// <exception cref="System.Runtime.InteropServices.ExternalException">Thrown when the image could not be saved to the stream.</exception>
         public static string Base64EncodeImage(Bitmap bmp, ImageFormat format)
         {
-            string res = "";
-
             using (var ms = new MemoryStream())
             {
-                using (var bitmap = bmp)
-                {
-                    bitmap.Save(ms, format);
-                    res = Convert.ToBase64String(ms.GetBuffer()); // get Base64
-                }
+                bmp.Save(ms, format);
+                return Convert.ToBase64String(ms.ToArray());
             }
-
-            return res;
         }
     }
 }

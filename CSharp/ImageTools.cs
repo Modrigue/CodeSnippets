@@ -17,19 +17,20 @@ namespace CodeSamples.CSharp
         /// <returns></returns>
         private static BitmapImage Bitmap2BitmapImage(Bitmap bitmap)
         {
+            BitmapImage bitmapImage;
             using (MemoryStream memory = new MemoryStream())
             {
                 bitmap.Save(memory, ImageFormat.Png);
                 memory.Position = 0;
 
-                BitmapImage bitmapImage = new BitmapImage();
+                bitmapImage = new BitmapImage();
                 bitmapImage.BeginInit();
                 bitmapImage.StreamSource = memory;
                 bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
                 bitmapImage.EndInit();
-
-                return bitmapImage;
+                bitmapImage.Freeze();
             }
+            return bitmapImage;
         }
 
         /// <summary>
@@ -39,15 +40,17 @@ namespace CodeSamples.CSharp
         /// <returns>A new Bitmap containing the converted image.</returns>
         public static Bitmap BitmapFromSource(BitmapSource bitmapsource)
         {
-            Bitmap bitmap;
             using (var outStream = new MemoryStream())
             {
                 BitmapEncoder enc = new BmpBitmapEncoder();
                 enc.Frames.Add(BitmapFrame.Create(bitmapsource));
                 enc.Save(outStream);
-                bitmap = new Bitmap(outStream);
+                outStream.Position = 0;
+
+                // Clone so the returned Bitmap doesn't keep a reference to the disposed stream.
+                using (var temp = new Bitmap(outStream))
+                    return new Bitmap(temp);
             }
-            return bitmap;
         }
 
         /// <summary>
@@ -136,7 +139,7 @@ namespace CodeSamples.CSharp
 
                         // copy image
                         Rectangle srcRegion = new Rectangle(0, 0, w, h);
-                        Rectangle dstRegion = new Rectangle(borderSize, borderSize, w - borderSize, h - borderSize);
+                        Rectangle dstRegion = new Rectangle(borderSize, borderSize, w, h);
                         copyRegionIntoImage(image, srcRegion, ref bmp, dstRegion);
 
                         break;
@@ -172,7 +175,7 @@ namespace CodeSamples.CSharp
         /// <returns>An ImageCodecInfo for the specified format, or null if not found.</returns>
         public static ImageCodecInfo GetImageEncoder(ImageFormat format)
         {
-            ImageCodecInfo[] codecs = ImageCodecInfo.GetImageDecoders();
+            ImageCodecInfo[] codecs = ImageCodecInfo.GetImageEncoders();
             foreach (ImageCodecInfo codec in codecs)
             {
                 if (codec.FormatID == format.Guid)

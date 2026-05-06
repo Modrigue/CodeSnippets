@@ -107,7 +107,7 @@ namespace CodeSamples.CSharp
 
             m_lastError = MAPISendMail(new IntPtr(0), new IntPtr(0), msg, how, 0);
             if (m_lastError > 1)
-                Console.WriteLine("MAPISendMail failed! " + GetLastError(), "MAPISendMail");
+                Console.WriteLine("MAPISendMail failed! " + GetLastError());
 
             Cleanup(ref msg);
             return m_lastError;
@@ -144,25 +144,11 @@ namespace CodeSamples.CSharp
             int size = Marshal.SizeOf(typeof(MapiRecipDesc));
             IntPtr intPtr = Marshal.AllocHGlobal(m_recipients.Count * size);
 
-            // 64-bit
-            if (Environment.Is64BitOperatingSystem)
+            IntPtr ptr = intPtr;
+            foreach (MapiRecipDesc mapiDesc in m_recipients)
             {
-                Int64 ptr = (Int64)intPtr;
-                foreach (MapiRecipDesc mapiDesc in m_recipients)
-                {
-                    Marshal.StructureToPtr(mapiDesc, (IntPtr)ptr, false);
-                    ptr += size;
-                }
-            }
-            // 32-bit
-            else
-            {
-                Int32 ptr = (Int32)intPtr;
-                foreach (MapiRecipDesc mapiDesc in m_recipients)
-                {
-                    Marshal.StructureToPtr(mapiDesc, (IntPtr)ptr, false);
-                    ptr += size;
-                }
+                Marshal.StructureToPtr(mapiDesc, ptr, false);
+                ptr = IntPtr.Add(ptr, size);
             }
 
             recipCount = m_recipients.Count;
@@ -189,29 +175,13 @@ namespace CodeSamples.CSharp
             MapiFileDesc mapiFileDesc = new MapiFileDesc();
             mapiFileDesc.position = -1;
 
-            // 64-bit
-            if (Environment.Is64BitOperatingSystem)
+            IntPtr ptr = intPtr;
+            foreach (string strAttachment in m_attachments)
             {
-                Int64 ptr = (Int64)intPtr;
-                foreach (string strAttachment in m_attachments)
-                {
-                    mapiFileDesc.name = Path.GetFileName(strAttachment);
-                    mapiFileDesc.path = strAttachment;
-                    Marshal.StructureToPtr(mapiFileDesc, (IntPtr)ptr, false);
-                    ptr += size;
-                }
-            }
-            // 32-bit
-            else
-            {
-                Int32 ptr = (Int32)intPtr;
-                foreach (string strAttachment in m_attachments)
-                {
-                    mapiFileDesc.name = Path.GetFileName(strAttachment);
-                    mapiFileDesc.path = strAttachment;
-                    Marshal.StructureToPtr(mapiFileDesc, (IntPtr)ptr, false);
-                    ptr += size;
-                }
+                mapiFileDesc.name = Path.GetFileName(strAttachment);
+                mapiFileDesc.path = strAttachment;
+                Marshal.StructureToPtr(mapiFileDesc, ptr, false);
+                ptr = IntPtr.Add(ptr, size);
             }
 
             fileCount = m_attachments.Count;
@@ -224,66 +194,28 @@ namespace CodeSamples.CSharp
         /// <param name="msg">The MAPI message structure to clean up.</param>
         private void Cleanup(ref MapiMessage msg)
         {
-            int size = Marshal.SizeOf(typeof(MapiRecipDesc));
-
-            // 64-bit
-            if (Environment.Is64BitOperatingSystem)
+            if (msg.recips != IntPtr.Zero)
             {
-                Int64 ptr = 0;
-
-                if (msg.recips != IntPtr.Zero)
+                int recipSize = Marshal.SizeOf(typeof(MapiRecipDesc));
+                IntPtr ptr = msg.recips;
+                for (int i = 0; i < msg.recipCount; i++)
                 {
-                    ptr = (Int64)msg.recips;
-                    for (int i = 0; i < msg.recipCount; i++)
-                    {
-                        Marshal.DestroyStructure((IntPtr)ptr, typeof(MapiRecipDesc));
-                        ptr += size;
-                    }
-                    Marshal.FreeHGlobal(msg.recips);
+                    Marshal.DestroyStructure(ptr, typeof(MapiRecipDesc));
+                    ptr = IntPtr.Add(ptr, recipSize);
                 }
-
-                if (msg.files != IntPtr.Zero)
-                {
-                    size = Marshal.SizeOf(typeof(MapiFileDesc));
-
-                    ptr = (Int64)msg.files;
-                    for (int i = 0; i < msg.fileCount; i++)
-                    {
-                        Marshal.DestroyStructure((IntPtr)ptr, typeof(MapiFileDesc));
-                        ptr += size;
-                    }
-                    Marshal.FreeHGlobal(msg.files);
-                }
+                Marshal.FreeHGlobal(msg.recips);
             }
-            // 32-bit
-            else
+
+            if (msg.files != IntPtr.Zero)
             {
-                Int32 ptr = 0;
-
-                if (msg.recips != IntPtr.Zero)
+                int fileSize = Marshal.SizeOf(typeof(MapiFileDesc));
+                IntPtr ptr = msg.files;
+                for (int i = 0; i < msg.fileCount; i++)
                 {
-                    ptr = (Int32)msg.recips;
-                    for (int i = 0; i < msg.recipCount; i++)
-                    {
-                        Marshal.DestroyStructure((IntPtr)ptr, typeof(MapiRecipDesc));
-                        ptr += size;
-                    }
-                    Marshal.FreeHGlobal(msg.recips);
+                    Marshal.DestroyStructure(ptr, typeof(MapiFileDesc));
+                    ptr = IntPtr.Add(ptr, fileSize);
                 }
-
-                if (msg.files != IntPtr.Zero)
-                {
-                    size = Marshal.SizeOf(typeof(MapiFileDesc));
-
-                    ptr = (Int32)msg.files;
-                    for (int i = 0; i < msg.fileCount; i++)
-                    {
-                        Marshal.DestroyStructure((IntPtr)ptr, typeof(MapiFileDesc));
-                        ptr += size;
-                    }
-                    Marshal.FreeHGlobal(msg.files);
-                }
-
+                Marshal.FreeHGlobal(msg.files);
             }
 
             m_recipients.Clear();
@@ -293,7 +225,7 @@ namespace CodeSamples.CSharp
 
         public string GetLastError()
         {
-            if (m_lastError <= 26)
+            if (m_lastError >= 0 && m_lastError <= 26)
                 return errors[m_lastError];
             return "MAPI error [" + m_lastError.ToString() + "]";
         }

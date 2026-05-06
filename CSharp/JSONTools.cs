@@ -26,14 +26,14 @@ namespace CodeSamples.CSharp
         /// <returns>A JSON string representation of the object.</returns>
         public static string Serialize<T>(T data)
         {
-            MemoryStream stream = new MemoryStream();
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(T));
-            serializer.WriteObject(stream, data);
-            stream.Position = 0;
-            StreamReader reader = new StreamReader(stream);
-            string res = reader.ReadToEnd();
-
-            return res;
+            using (var stream = new MemoryStream())
+            {
+                var serializer = new DataContractJsonSerializer(typeof(T));
+                serializer.WriteObject(stream, data);
+                stream.Position = 0;
+                using (var reader = new StreamReader(stream))
+                    return reader.ReadToEnd();
+            }
         }
 
         /// <summary>
@@ -44,12 +44,11 @@ namespace CodeSamples.CSharp
         /// <returns>The deserialized object of type T.</returns>
         public static T Deserialize<T>(string json)
         {
-            MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(T));
-            T data = (T)serializer.ReadObject(stream);
-            stream.Close();
-
-            return data;
+            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json)))
+            {
+                var serializer = new DataContractJsonSerializer(typeof(T));
+                return (T)serializer.ReadObject(stream);
+            }
         }
 
         /// <summary>
@@ -60,12 +59,11 @@ namespace CodeSamples.CSharp
         /// <returns>An array of deserialized objects of type T.</returns>
         public static T[] DeserializeArray<T>(string json)
         {
-            MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(T[]));
-            T[] data = serializer.ReadObject(stream) as T[];
-            stream.Close();
-
-            return data;
+            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json)))
+            {
+                var serializer = new DataContractJsonSerializer(typeof(T[]));
+                return serializer.ReadObject(stream) as T[];
+            }
         }
 
         #endregion

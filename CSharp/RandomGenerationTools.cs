@@ -15,6 +15,13 @@ namespace CodeSamples.CSharp
     public class RandomGenerationTools
     {
         private static readonly Random random_ = new Random();
+        private static readonly object randomLock_ = new object();
+
+        private static int NextRandom(int minInclusive, int maxExclusive)
+        {
+            lock (randomLock_)
+                return random_.Next(minInclusive, maxExclusive);
+        }
 
         /// <summary>
         /// Generates a random byte array of the specified size.
@@ -24,8 +31,8 @@ namespace CodeSamples.CSharp
         public static byte[] GenerateRandomBytes(int size)
         {
             byte[] bytes = new byte[size];
-            for (int i = 0; i < size; i++)
-                bytes[i] = (byte)(random_.Next(0, 255));
+            lock (randomLock_)
+                random_.NextBytes(bytes);
 
             return bytes;
         }
@@ -37,8 +44,7 @@ namespace CodeSamples.CSharp
         /// <returns>A 32-bit signed integer greater than or equal to 0 and less than 10^length.</returns>
         public static int RandomInt(int length)
         {
-            int num = random_.Next(0, (int)Math.Round(Math.Pow(10, length)));
-            return num;
+            return NextRandom(0, (int)Math.Round(Math.Pow(10, length)));
         }
 
         /// <summary>
@@ -48,17 +54,11 @@ namespace CodeSamples.CSharp
         /// <returns>A random hexadecimal string of the specified length.</returns>
         private static string randomHexString(int length)
         {
-            // 64 character precision or 256-bits
-            string hexValue = string.Empty;
-            int num;
-
+            var sb = new StringBuilder(length);
             for (int i = 0; i < length; i++)
-            {
-                num = random_.Next(0, 16);
-                hexValue += num.ToString("X");
-            }
+                sb.Append(NextRandom(0, 16).ToString("X"));
 
-            return hexValue;
+            return sb.ToString();
         }
 
         /// <summary>
@@ -68,17 +68,11 @@ namespace CodeSamples.CSharp
         /// <returns>A random integer string of the specified length.</returns>
         private static string randomIntString(int length)
         {
-            // 64 character precision or 256-bits
-            string value = string.Empty;
-            int num;
-
+            var sb = new StringBuilder(length);
             for (int i = 0; i < length; i++)
-            {
-                num = random_.Next(0, 10);
-                value += num.ToString("X");
-            }
+                sb.Append(NextRandom(0, 10).ToString());
 
-            return value;
+            return sb.ToString();
         }
 
         /// <summary>
@@ -89,24 +83,22 @@ namespace CodeSamples.CSharp
         /// <returns>A random ASCII string of the specified length.</returns>
         private static string randomAsciiString(int length, bool useExtendedAscii = false)
         {
-            string value = string.Empty;
-            int num;
-
             int minValue = 32;
             int maxValue = useExtendedAscii ? 254 : 126;
 
+            var sb = new StringBuilder(length);
             for (int i = 0; i < length; i++)
             {
-                num = random_.Next(minValue, maxValue + 1);
+                int num = NextRandom(minValue, maxValue + 1);
 
                 // prevent DEL, '{' and '}'
                 while (num == 127 /*|| num == 123 || num == 125*/)
-                    num = random_.Next(minValue, maxValue + 1);
+                    num = NextRandom(minValue, maxValue + 1);
 
-                value += (char)num;
+                sb.Append((char)num);
             }
 
-            return value;
+            return sb.ToString();
         }
 
         /// <summary>
@@ -132,7 +124,7 @@ namespace CodeSamples.CSharp
         {
             while (true)
             {
-                int val = random_.Next(char.MinValue, char.MaxValue);
+                int val = NextRandom(char.MinValue, char.MaxValue);
 
                 // do not accept:
                 //  - surrogate characters (0xD800 - 0xDFFF) (55296 - 57343)
@@ -141,7 +133,7 @@ namespace CodeSamples.CSharp
                      || val == 65534
                      || val == 65535
                       )
-                    val = random_.Next(char.MinValue, char.MaxValue);
+                    val = NextRandom(char.MinValue, char.MaxValue);
 
                 yield return (char)val;
             }
@@ -155,7 +147,8 @@ namespace CodeSamples.CSharp
         private static string randomString2(int length)
         {
             var b = new byte[length];
-            new RNGCryptoServiceProvider().GetBytes(b);
+            using (var rng = new RNGCryptoServiceProvider())
+                rng.GetBytes(b);
             return Encoding.ASCII.GetString(b);
         }
     }
