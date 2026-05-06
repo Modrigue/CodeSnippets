@@ -4,7 +4,7 @@ const http = require('http');
 let fs = require('fs');
 let url = require('url');
 // server parameters
-const DEPLOY = true;
+const DEPLOY = false;
 // localhost
 let hostname = '127.0.0.1';
 let port = 5500;

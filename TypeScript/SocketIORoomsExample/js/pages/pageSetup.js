@@ -161,15 +161,15 @@ socket.on('updateRoomParams', (params) => {
 function setPlayerParams() {
     // get player color
     const divPlayerColor = document.getElementById(`setup_player_color_${selfID}`);
-    const color = (divPlayerColor === null || divPlayerColor === void 0 ? void 0 : divPlayerColor.children.item(0)).value;
+    const color = (divPlayerColor?.children.item(0)).value;
     // get player team
     const divPlayerTeam = document.getElementById(`setup_player_team_${selfID}`);
-    const team = (divPlayerTeam === null || divPlayerTeam === void 0 ? void 0 : divPlayerTeam.children.item(0)).value;
-    const hasTeam = ((divPlayerTeam === null || divPlayerTeam === void 0 ? void 0 : divPlayerTeam.children.item(0)).selectedIndex >= 0);
+    const team = (divPlayerTeam?.children.item(0)).value;
+    const hasTeam = ((divPlayerTeam?.children.item(0)).selectedIndex >= 0);
     // get player ready
     const divPlayerReady = document.getElementById(`setup_player_ready_${selfID}`);
-    const ready = (divPlayerReady === null || divPlayerReady === void 0 ? void 0 : divPlayerReady.children.item(0)).checked;
-    (divPlayerReady === null || divPlayerReady === void 0 ? void 0 : divPlayerReady.children.item(0)).disabled = !hasTeam;
+    const ready = (divPlayerReady?.children.item(0)).checked;
+    (divPlayerReady?.children.item(0)).disabled = !hasTeam;
     socket.emit('setPlayerParams', { color: color, team: team, ready: ready }, (response) => { });
 }
 // update player params
@@ -179,19 +179,19 @@ socket.on('updatePlayersParams', (params) => {
         const id = playerParams.id;
         // update player name color
         let divPlayerName = document.getElementById(`setup_player_name_${id}`);
-        (divPlayerName === null || divPlayerName === void 0 ? void 0 : divPlayerName.children.item(0)).style.color = playerParams.color;
+        (divPlayerName?.children.item(0)).style.color = playerParams.color;
         let divPlayerTeam = document.getElementById(`setup_player_team_${id}`);
-        (divPlayerTeam === null || divPlayerTeam === void 0 ? void 0 : divPlayerTeam.children.item(0)).style.color = playerParams.color;
+        (divPlayerTeam?.children.item(0)).style.color = playerParams.color;
         if (id == selfID)
             continue; // nop
         // update player color
         let divPlayerColor = document.getElementById(`setup_player_color_${id}`);
-        (divPlayerColor === null || divPlayerColor === void 0 ? void 0 : divPlayerColor.children.item(0)).value = playerParams.color;
+        (divPlayerColor?.children.item(0)).value = playerParams.color;
         // get player team
-        (divPlayerTeam === null || divPlayerTeam === void 0 ? void 0 : divPlayerTeam.children.item(0)).value = playerParams.team;
+        (divPlayerTeam?.children.item(0)).value = playerParams.team;
         // get player ready
         let divPlayerReady = document.getElementById(`setup_player_ready_${id}`);
-        (divPlayerReady === null || divPlayerReady === void 0 ? void 0 : divPlayerReady.children.item(0)).checked = playerParams.ready;
+        (divPlayerReady?.children.item(0)).checked = playerParams.ready;
     }
     updatePlayButton();
     // game page
@@ -249,7 +249,7 @@ function updatePlayButton() {
     // get ready states
     let ready = true;
     for (const divPlayerReady of divPlayersList.querySelectorAll("[id^='setup_player_ready_']"))
-        ready && (ready = divPlayerReady.children.item(0).checked);
+        ready &&= divPlayerReady.children.item(0).checked;
     setEnabled("buttonPlay", nbPlayersCorrect && teamsCorrect && ready);
 }
 function onPlay() {

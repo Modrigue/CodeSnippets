@@ -1,14 +1,20 @@
-let app = require('express')();
-let bodyParser = require('body-parser');
-const path = require('path');
-let session = require('express-session');
+import express, { Request, Response } from 'express';
+import session from 'express-session';
+import path from 'path';
+
+declare module 'express-session' {
+    interface SessionData {
+        error?: string;
+    }
+}
+
+const app = express();
 
 // parameters
 const DEPLOY: boolean = true;
 let hostname: string = "127.0.0.1";
 let port: number = 5500;
 
-// expose on public IP (don't forget to open the port)
 // expose on public IP (don't forget to open the port)
 if (DEPLOY)
 {
@@ -17,8 +23,8 @@ if (DEPLOY)
     // get public IP address
     hostname = '0.0.0.0';
     const WhatsMyIpAddress = require('../js/WhatsMyIpAddress');
-    WhatsMyIpAddress((data: any, err: any) => {
-        if (err == null)
+    WhatsMyIpAddress((data: string | null, err: string | null) => {
+        if (err == null && data != null)
         {
             hostname = data;
             console.log(`Public IP address: http://${hostname}:${port}`);
@@ -30,23 +36,23 @@ if (DEPLOY)
 
 
 // parse application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: false }))
+app.use(express.urlencoded({ extended: false }));
 
 // parse application/json
-app.use(bodyParser.json())
+app.use(express.json());
 
 app.use(session({
     secret: 'keyboard cat',
     resave: false,
     saveUninitialized: true,
     cookie: { secure: false } /* http */
-  }))
+}));
 
 
 //////////////////////////////////// ROUTES ///////////////////////////////////
 
- 
-app.get('/', (request: any, response: any) => {
+
+app.get('/', (request: Request, response: Response) => {
 
     const GetCurrentDateTime = require('../js/datetime');
     console.log(`${GetCurrentDateTime()}: Someone connected on ${request.url}`);
@@ -58,20 +64,17 @@ app.get('/', (request: any, response: any) => {
     }
 
     response.sendFile(path.join(__dirname, '../index.html'));
-    //__dirname : It will resolve to your project folder.
-
-    //response.render('./index');
-    //response.send('Salut Test Express');
 });
 
-app.post('/', (request: any, response: any) => {
+app.post('/', (request: Request, response: Response) => {
 
-    const word = request.body.word1;
-    console.log(`New word: ${word} from ${request.connection.remoteAddress}`);
+    const word = request.body?.word1;
+    console.log(`New word: ${word} from ${request.socket.remoteAddress}`);
     if (word === undefined || word === '')
     {
         request.session.error = "There is an error";
         response.sendFile(path.join(__dirname, '../index.html'));
+        return;
     }
 
     response.sendFile(path.join(__dirname, '../index.html'));

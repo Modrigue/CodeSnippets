@@ -1,13 +1,16 @@
 "use strict";
-let app = require('express')();
-let bodyParser = require('body-parser');
-const path = require('path');
-let session = require('express-session');
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const express_session_1 = __importDefault(require("express-session"));
+const path_1 = __importDefault(require("path"));
+const app = (0, express_1.default)();
 // parameters
 const DEPLOY = true;
 let hostname = "127.0.0.1";
 let port = 5500;
-// expose on public IP (don't forget to open the port)
 // expose on public IP (don't forget to open the port)
 if (DEPLOY) {
     port = 13000;
@@ -15,7 +18,7 @@ if (DEPLOY) {
     hostname = '0.0.0.0';
     const WhatsMyIpAddress = require('../js/WhatsMyIpAddress');
     WhatsMyIpAddress((data, err) => {
-        if (err == null) {
+        if (err == null && data != null) {
             hostname = data;
             console.log(`Public IP address: http://${hostname}:${port}`);
         }
@@ -23,10 +26,10 @@ if (DEPLOY) {
 }
 ////////////////////////////////// MIDDLEWARES ////////////////////////////////
 // parse application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express_1.default.urlencoded({ extended: false }));
 // parse application/json
-app.use(bodyParser.json());
-app.use(session({
+app.use(express_1.default.json());
+app.use((0, express_session_1.default)({
     secret: 'keyboard cat',
     resave: false,
     saveUninitialized: true,
@@ -40,19 +43,17 @@ app.get('/', (request, response) => {
         response.locals.error = request.session.error;
         request.session.error = undefined;
     }
-    response.sendFile(path.join(__dirname, '../index.html'));
-    //__dirname : It will resolve to your project folder.
-    //response.render('./index');
-    //response.send('Salut Test Express');
+    response.sendFile(path_1.default.join(__dirname, '../index.html'));
 });
 app.post('/', (request, response) => {
-    const word = request.body.word1;
-    console.log(`New word: ${word} from ${request.connection.remoteAddress}`);
+    const word = request.body?.word1;
+    console.log(`New word: ${word} from ${request.socket.remoteAddress}`);
     if (word === undefined || word === '') {
         request.session.error = "There is an error";
-        response.sendFile(path.join(__dirname, '../index.html'));
+        response.sendFile(path_1.default.join(__dirname, '../index.html'));
+        return;
     }
-    response.sendFile(path.join(__dirname, '../index.html'));
+    response.sendFile(path_1.default.join(__dirname, '../index.html'));
 });
 app.listen(port, hostname, () => {
     console.log(`Server running at http://${hostname}:${port}/`);

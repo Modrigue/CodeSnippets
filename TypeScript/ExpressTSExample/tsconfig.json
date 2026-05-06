@@ -1,17 +1,18 @@
 {
     "compilerOptions": {
+        "rootDir": "ts",
         "outDir": "js",
-        "target": "ES6",
+        "target": "ES2022",
         "module": "commonjs",       /* supports modules */
-        "esModuleInterop": true,    /* former exports retrocompatibilty */
+        "esModuleInterop": true,    /* former exports retrocompatibility */
         "noEmitOnError": true,
         "strict": true,
         "noImplicitAny": true,
         "noImplicitThis": false,
-        "sourceMap": true,          /*for ts debug */
+        "sourceMap": true,          /* for ts debug */
         "pretty": true
     },
-    "exclude": ["node-modules"],
+    "exclude": ["node_modules"],
     "include": [
         "ts/*"
     ]

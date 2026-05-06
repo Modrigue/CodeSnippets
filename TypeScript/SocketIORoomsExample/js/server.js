@@ -18,16 +18,14 @@ else {
     app.get('/', (req, res) => res.send('Hello World!'));
 }
 class Player_S {
-    constructor() {
-        this.score = 0;
-        this.no = 0;
-        this.name = "";
-        this.room = "";
-        this.color = "#0000ff";
-        this.team = "";
-        this.ready = false;
-        this.creator = false;
-    }
+    score = 0;
+    no = 0;
+    name = "";
+    room = "";
+    color = "#0000ff";
+    team = "";
+    ready = false;
+    creator = false;
 }
 var GameStatus;
 (function (GameStatus) {
@@ -36,13 +34,11 @@ var GameStatus;
     GameStatus[GameStatus["PLAYING"] = 2] = "PLAYING";
 })(GameStatus || (GameStatus = {}));
 class Game_S {
-    constructor() {
-        this.nbPlayersMax = 2;
-        this.players = new Map();
-        this.nbRounds = 3;
-        this.password = "";
-        this.status = GameStatus.NONE;
-    }
+    nbPlayersMax = 2;
+    players = new Map();
+    nbRounds = 3;
+    password = "";
+    status = GameStatus.NONE;
 }
 let games = new Map();
 let clientNo = 0;
@@ -187,7 +183,6 @@ function connected(socket) {
     });
     // disconnection
     socket.on('disconnect', function () {
-        var _a;
         console.log(`Client '${socket.id}' disconnected`);
         // if creator player in setup page, kick all players in room and delete room
         let player = getPlayerFromId(socket.id);
@@ -199,7 +194,7 @@ function connected(socket) {
         const room = player.room;
         // if creator at game setup, delete room and kick all players in room
         if (player.creator) {
-            if (((_a = games.get(room)) === null || _a === void 0 ? void 0 : _a.status) == GameStatus.SETUP) {
+            if (games.get(room)?.status == GameStatus.SETUP) {
                 games.delete(room);
                 console.log(`Creator '${player.name}' disconnected => Room '${room}' deleted`);
                 updateRoomsList();
@@ -232,10 +227,9 @@ function connected(socket) {
 }
 ////////////////////////////////// SEND EVENTS ////////////////////////////////
 function updateRoomsList() {
-    var _a;
     let roomsData = new Array();
     for (const [room, game] of games) {
-        const nbPlayersCur = (_a = game.players) === null || _a === void 0 ? void 0 : _a.size;
+        const nbPlayersCur = game.players?.size;
         let status = "";
         switch (game.status) {
             case GameStatus.PLAYING:
